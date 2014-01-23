@@ -4,7 +4,7 @@
 
 =head1 SYNOPSIS
 
-	scrabble.pl [options] <letters>
+	scrabble.pl [ --help | [--debug] [--dictionary <dict>]] <letters>
 
 =head1 DESCRIPTION
 
@@ -38,18 +38,33 @@ or installing the correct dictionary.
 
 B<--debug>
 
-The B<--debug> flag is just a switch that outputs simple debugging
-messages
+This is a switch that outputs simple debugging messages.
+
+B<--help>
+
+This is a switch that outputs this documentation.
 
 =cut
 
 my $debug = 0;
 my $dictionary = 'sowpods';
+my $help = 0;
 
 GetOptions(
 	"dictionary=s" => \$dictionary,
 	"debug"        => \$debug,
-) or pod2usage( "-verbose" => 1 );
+	"help"         => \$help,
+) or pod2usage();
+pod2usage( "-verbose" => 1 ) if $help;
+
+# What's left after the options should be the letters
+my $letters = shift;
+pod2usage() unless $letters;
+if ( $dictionary =~ /^words$/i ) {
+	$letters = lc $letters;
+} else {
+	$letters = uc $letters;
+}
 
 # Read a dictionary of legal words.  Put all words into a hash
 # for faster lookup
@@ -57,9 +72,9 @@ GetOptions(
 # Which dictionary to use?  Change these to match your system
 my $file_name;
 SWITCH: for ($dictionary) {
-	if ( /^sowpods$/i ) { $file_name = "./sowpods.txt";         last SWITCH }
-	if ( /^twl$/i )     { $file_name = "./twl.txt";             last SWITCH }
-	if ( /^words$/i )   { $file_name = "/usr/share/dict/words"; last SWITCH }
+	if ( /^sowpods$/i ) { $file_name = "/usr/local/lib/scrabble/sowpods.txt"; last SWITCH }
+	if ( /^twl$/i )     { $file_name = "/usr/local/lib/scrabble/twl.txt";     last SWITCH }
+	if ( /^words$/i )   { $file_name = "/usr/share/dict/words";               last SWITCH }
 	$file_name = $dictionary;
 }
 
@@ -70,15 +85,6 @@ chomp( my @words = <FH> );
 my %words = map { $_ => '' } @words;
 close FH;
 @words = ();
-
-# What's left after the options should be the letters
-my $letters = shift;
-exit 1 unless $letters;
-if ( $dictionary =~ /^words$/i ) {
-	$letters = lc $letters;
-} else {
-	$letters = uc $letters;
-}
 
 # Get the tile values for all letters
 say "Getting letter values..." if $debug;
