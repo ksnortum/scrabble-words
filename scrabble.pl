@@ -4,9 +4,10 @@
 
 =head1 SYNOPSIS
 
-	scrabble.pl [--debug] 
-	            [--dictionary <dict>] 
+	scrabble.pl [--dictionary <dict>] 
+	            [--contains <letters>]
 	            [--min-length <2-15>]
+	            [--debug] 
 	            <letters>
 	scrabble.pl [ --help ]
 
@@ -41,16 +42,29 @@ or installing the correct dictionary.
 
 The default is "sowpods" unless the LANG environment variable is
 set and its value starts with en_US or en_CA.  Then the default
-is "twl".  "collins" is a symonym for "sowpods".
+is "twl".  "collins" is a synonym for "sowpods".
 
-B<--debug>
+B<--contains> <letters>
 
-This is a switch that outputs simple debugging messages.
+A letter or letters that the words must contain.  These letter(s)
+are added to the letters to build the words with.  That is, if you
+want words that are made of the letters "abc" and if must contain
+"a", use:
+
+	scrabble.pl --contains a bc
+
+It can be made clearer by using the "equals" flag syntax:
+
+	scrabble.pl --contains=a bc
 
 B<--min-length> 2-15
 
 A digit, from 2 to 15, that is the minimum length of the words
 you want to see.  The default is 2.
+
+B<--debug>
+
+This is a switch that outputs simple debugging messages.
 
 B<--help>
 
@@ -62,18 +76,21 @@ my $debug = 0;
 my $dictionary = '';
 my $help = 0;
 my $min_length = 2;
+my $contains = '';
 
 GetOptions(
 	"dictionary=s" => \$dictionary,
 	"debug"        => \$debug,
 	"help"         => \$help,
 	"min-length=i" => \$min_length,
+	"contains=s"   => \$contains,
 ) or pod2usage();
 pod2usage( "-verbose" => 1 ) if $help;
 
 # What's left after the options should be the letters
 my $letters = shift;
 pod2usage() unless $letters;
+$letters .= $contains;
 
 if ( $dictionary =~ /^words$/i ) {
 	$letters = lc $letters;
@@ -161,6 +178,14 @@ sub find_words {
 
 	# Look at each permutation
 	foreach my $word ( @{ $a->{permutations} } ) {
+
+		# Does this permutation contain all the letters it needs to?
+		foreach my $find ( split //, $contains ) {
+			if ( $word !~ /$find/i ) {
+				say "'$word' does not contain '$find'" if $debug;
+				return;
+			}
+		}
 
 		# Since you can have more than one tile with the same letter,
 		# it is possible that we've already tested this permutation.
