@@ -15,6 +15,9 @@
 
 C<scrabble.pl> is a script that will take the letters you enter 
 and return all the legal Scrabble words sorted by tile value.
+B<letters> is any conbination of letters you want to check, excluding
+any B<--contains> letters.  You can use a dot (.) to signify a
+blank tile.
 
 =cut
 
@@ -85,7 +88,7 @@ GetOptions(
 	"min-length=i" => \$min_length,
 	"contains=s"   => \$contains,
 ) or pod2usage();
-pod2usage( "-verbose" => 1 ) if $help;
+pod2usage( "-verbose" => 2 ) if $help;
 
 # What's left after the options should be the letters
 my $letters = shift;
@@ -125,7 +128,7 @@ SWITCH: for ($dictionary) {
 
 say "The file name for the dictionary is $file_name" if $debug;
 say "Slurping dictionary words..." if $debug;
-open FH, $file_name or pod2usage( "-verbose" => 1 );
+open FH, $file_name or pod2usage( "-verbose" => 2 );
 chomp( my @words = <FH> );
 my %words = map { $_ => '' } @words;
 close FH;
@@ -147,15 +150,29 @@ close DATA;
 ########
 
 # Call Subset to get all subsets of the letters (what tiles are we
-# using).  The routine  "find_words" is call for each subset sending 
+# using).  The routine  "find_words" is called for each subset sending 
 # in a list of letters.  @found is a list of all legal words found.
 say "Starting letter shuffle..." if $debug;
 my @found = ();
 my %seen = ();
-Subset->run(
-	string  => $letters,
-	routine => \&find_words
-);
+
+if ( $letters =~ /\./ ) {
+	$letters =~ s/\.//;
+
+	foreach my $wildcard ( 'A' .. 'Z' ) {
+		$wildcard = lc $wildcard if $dictionary =~ /^words$/i;
+		say "Blank tile is a '$wildcard'" if $debug;
+		Subset->run(
+			string  => $letters . $wildcard,
+			routine => \&find_words
+		);
+	}
+} else {
+	Subset->run(
+		string  => $letters,
+		routine => \&find_words
+	);
+}
 
 # List found words, sorting by descending total tile value
 say join ', ', sort { value_of($b) <=> value_of($a) } @found;
