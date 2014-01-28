@@ -7,9 +7,10 @@
 	scrabble.pl [--dictionary <dict>] 
 	            [--contains <letters>]
 	            [--min-length <2-15>]
+	            [--output <type>]
 	            [--debug] 
 	            <letters>
-	scrabble.pl [ --help ]
+	scrabble.pl [--help]
 
 =head1 DESCRIPTION
 
@@ -65,6 +66,15 @@ B<--min-length> 2-15
 A digit, from 2 to 15, that is the minimum length of the words
 you want to see.  The default is 2.
 
+B<--output> compact | list | /path/to/file
+
+How the output should be formatted.  'compact' goes to the 
+standard out with comma-space (, ) between the words.  List
+is one word per line with a LF between lines.  If the output
+type is neither of these, it's assumed to be a path and 
+file name to send the output to in list format.  The default
+is compact.
+
 B<--debug>
 
 This is a switch that outputs simple debugging messages.
@@ -80,6 +90,7 @@ my $dictionary = '';
 my $help = 0;
 my $min_length = 2;
 my $contains = '';
+my $output = 'compact';
 
 GetOptions(
 	"dictionary=s" => \$dictionary,
@@ -87,6 +98,7 @@ GetOptions(
 	"help"         => \$help,
 	"min-length=i" => \$min_length,
 	"contains=s"   => \$contains,
+	"output=s"     => \$output,
 ) or pod2usage();
 pod2usage( "-verbose" => 2 ) if $help;
 
@@ -128,7 +140,7 @@ SWITCH: for ($dictionary) {
 
 say "The file name for the dictionary is $file_name" if $debug;
 say "Slurping dictionary words..." if $debug;
-open FH, $file_name or pod2usage( "-verbose" => 2 );
+open FH, '<', $file_name or pod2usage( "-verbose" => 2 );
 chomp( my @words = <FH> );
 my %words = map { $_ => '' } @words;
 close FH;
@@ -175,7 +187,15 @@ if ( $letters =~ /\./ ) {
 }
 
 # List found words, sorting by descending total tile value
-say join ', ', sort { value_of($b) <=> value_of($a) } @found;
+if ( $output =~ /^compact$/i ) {
+	say join ', ', sort { value_of($b) <=> value_of($a) } @found;
+} elsif ( $output =~ /^list$/i ) {
+	say join "\n", sort { value_of($b) <=> value_of($a) } @found;
+} else {
+	open FH, '>', $output or die "Cannot open $output for writing, $!";
+	print FH join "\n", sort { value_of($b) <=> value_of($a) } @found;
+	close FH;
+}
 
 ###############
 # Subroutines #
