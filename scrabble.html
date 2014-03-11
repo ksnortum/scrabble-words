@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Scrabble Word Finder</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#options">OPTIONS</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        scrabble.pl [--dictionary &lt;dict&gt;] 
+                    [--contains &lt;letters&gt;]
+                    [--min-length &lt;2-15&gt;]
+                    [--output &lt;type&gt;]
+                    [--quiet]
+                    [--debug] 
+                    &lt;letters&gt;
+        scrabble.pl [--help]</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><code>scrabble.pl</code> is a script that will take the letters you enter 
+and return all the legal Scrabble words sorted by tile value.
+<strong>letters</strong> is any conbination of letters you want to check, excluding
+any <strong>--contains</strong> letters.  You can use a dot (.) to signify a
+blank tile.</p>
+<p>
+</p>
+<hr />
+<h1><a name="options">OPTIONS</a></h1>
+<p><strong>--dictionary</strong> sowpods | collins | twl | words | /path/to/dict</p>
+<p>Defined which which Scrabble dictionary to use.  
+A dictionary is a text file with one legal word per line.  The 
+text line separators should be correct for your system.  The 
+value after the flag can be a path (use only slashes &quot;/&quot;) or one
+of the three names given.  You are responsible for downloading
+or installing the correct dictionary.</p>
+<p>The default is &quot;sowpods&quot; unless the LANG environment variable is
+set and its value starts with en_US or en_CA.  Then the default
+is &quot;twl&quot;.  &quot;collins&quot; is a synonym for &quot;sowpods&quot;.</p>
+<p><strong>--contains</strong> &lt;letters&gt;</p>
+<p>A letter or letters that the words must contain.  These letter(s)
+are added to the letters to build the words with.  That is, if you
+want words that are made of the letters &quot;abc&quot; and if must contain
+&quot;a&quot;, use:</p>
+<pre>
+        scrabble.pl --contains a bc</pre>
+<p>It can be made clearer by using the &quot;equals&quot; flag syntax:</p>
+<pre>
+        scrabble.pl --contains=a bc</pre>
+<p><strong>--min-length</strong> 2-15</p>
+<p>A digit, from 2 to 15, that is the minimum length of the words
+you want to see.  The default is 2.</p>
+<p><strong>--output</strong> compact | list | /path/to/file</p>
+<p>How the output should be formatted.  'compact' goes to the 
+standard out with comma-space (, ) between the words.  List
+is one word per line with a LF between lines.  If the output
+type is neither of these, it's assumed to be a path and 
+file name to send the output to in list format.  The default
+is compact.</p>
+<p><strong>--quiet</strong></p>
+<p>By default, the program prints dots to show you it's thinking.  This switch
+stops the printing of those dots.  <strong>--debug</strong> turns on <strong>--quiet</strong> automatically.
+Outputs that are not &quot;compact&quot; are quiet by default.</p>
+<p><strong>--debug</strong></p>
+<p>This is a switch that outputs simple debugging messages.  Using the switch
+twice gives more output.</p>
+<p><strong>--help</strong></p>
+<p>This is a switch that outputs this documentation and exits.</p>
+
+</body>
+
+</html>

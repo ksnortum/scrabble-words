@@ -1,0 +1,70 @@
+<h1>Readme for scrabble.pl</h1>
+
+<p><code>scrabble.pl</code> is a command line Scrabble(r) word generator written in Perl.  See 
+<code>scrabble.html</code> for syntax and command line options.</p>
+
+<h1>Installation</h1>
+
+<h2>Install Perl if Needed</h2>
+
+<p>You need Perl to run <code>scrabble.pl</code>.  First see if your distribution has it installed.  Go
+to a command line and type</p>
+
+<pre><code>perl -v
+</code></pre>
+
+<p>If you don't get a copyright notice for Perl, install it.  Go to 
+<a href="http://www.perl.org">the Perl webpage</a>.  For Windows(r) I suggest 
+<a href="http://www.strawberryperl.com">Strawberry Perl</a>.</p>
+
+<h2>Install the Custom Modules</h2>
+
+<p>The custom modules <code>Permutation.pm</code> and <code>Subset.pm</code> need to be installed.  Look in 
+Perl installation directory and you should see a site/lib directory.  Copy the two
+files there.  You can use <code>permutations.pl</code> and <code>subset.pl</code> to test that the 
+modules are installed and working properly.</p>
+
+<h2>Install the Word Libraries</h2>
+
+<p>Unzip the two Scrabble word dictionaries using <code>gunzip</code>:</p>
+
+<pre><code>gunzip sowpods.txt.gz
+gunzip twl.txt.gz
+</code></pre>
+
+<p>You can put these libraries anywhere.  On Unix-like systems you can try 
+/usr/local/lib/scrabble/.  Modify <code>scrabble.pl</code> to point to the correct path:</p>
+
+<pre><code>my $SOWPODS_PATH = "/usr/local/lib/scrabble/sowpods.txt";
+</code></pre>
+
+<p>SOWPODS and Collins are the same dictionary.  If you want to your system's spell check
+dictionary or any other custom dictionary, set its path for the WORDS_PATH and use
+WORDS as your custom dictionary on the command line.</p>
+
+<pre><code>my $WORDS_PATH = "/usr/share/dict/words";
+</code></pre>
+
+<h1>Limitations</h1>
+
+<ul>
+<li><p>You can only use one blank tile (dot) at a time, and even one increases the process
+time greatly.</p></li>
+<li><p>If the program uses a blank tile as, say, a "z", it counts this in the score.  All
+blank tiles should have a value of zero.</p></li>
+<li><p>You cannot give the positions of any letters, but you can accomplish this with the 
+list output and piping to <code>grep</code>.</p></li>
+</ul>
+
+<h1>Copyright</h1>
+
+<p><code>scrabble.pl</code> and the modules <code>Permutation.pm</code> and <code>Subset.pm</code> are copyright 2014 by 
+Knute Snortum.  They are open source software and can be used under the same license as
+Perl itself.</p>
+
+<p>The files <code>sowpods.txt</code> and <code>twl.txt</code> appear to be copyright free, but I would suggest
+investigating this before using them in a commercial program.</p>
+
+<h1>Contact</h1>
+
+<p>You can contact me at knute (at) snortum (dot) net or as Knute Snortum on Google+.</p>
