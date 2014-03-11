@@ -8,6 +8,7 @@
 	            [--contains <letters>]
 	            [--min-length <2-15>]
 	            [--output <type>]
+	            [--quiet]
 	            [--debug] 
 	            <letters>
 	scrabble.pl [--help]
@@ -30,6 +31,13 @@ use Permutation;
 use Subset;
 use Getopt::Long;
 use Pod::Usage;
+
+my $SOWPODS_PATH = "/usr/local/lib/scrabble/sowpods.txt";
+my $COLLINS_PATH = "/usr/local/lib/scrabble/sowpods.txt";
+my $TWL_PATH     = "/usr/local/lib/scrabble/twl.txt";
+my $WORDS_PATH   = "/usr/share/dict/words";
+
+$| = 1; # Don't buffer output
 
 =pod
 
@@ -75,9 +83,16 @@ type is neither of these, it's assumed to be a path and
 file name to send the output to in list format.  The default
 is compact.
 
+B<--quiet>
+
+By default, the program prints dots to show you it's thinking.  This switch
+stops the printing of those dots.  B<--debug> turns on B<--quiet> automatically.
+Outputs that are not "compact" are quiet by default.
+
 B<--debug>
 
-This is a switch that outputs simple debugging messages.
+This is a switch that outputs simple debugging messages.  Using the switch
+twice gives more output.
 
 B<--help>
 
@@ -91,6 +106,7 @@ my $help = 0;
 my $min_length = 2;
 my $contains = '';
 my $output = 'compact';
+my $quiet = 0;
 
 GetOptions(
 	"dictionary=s" => \$dictionary,
@@ -99,6 +115,7 @@ GetOptions(
 	"min-length=i" => \$min_length,
 	"contains=s"   => \$contains,
 	"output=s"     => \$output,
+	"quiet"        => \$quiet,
 ) or pod2usage();
 pod2usage( "-verbose" => 2 ) if $help;
 
@@ -116,6 +133,13 @@ if ( $dictionary =~ /^words$/i ) {
 # Get minimum length
 pod2usage() if $min_length < 2 or $min_length > 15;
 
+# Quiet is on if you're using a long output (which will probably be piped) 
+# or if you are sending output to a file
+$quiet = 1 unless $output =~ /^compact$/i;
+
+# Don't print what non-quiet prints if you're in debug
+$quiet = 0 if $debug;
+
 # Read a dictionary of legal words.  Put all words into a hash
 # for faster lookup
 #
@@ -131,10 +155,10 @@ unless ( $dictionary ) {
 # Which dictionary to use?  Change these to match your system
 my $file_name;
 SWITCH: for ($dictionary) {
-	if ( /^sowpods$/i ) { $file_name = "/usr/local/lib/scrabble/sowpods.txt"; last SWITCH }
-	if ( /^collins$/i ) { $file_name = "/usr/local/lib/scrabble/sowpods.txt"; last SWITCH }
-	if ( /^twl$/i )     { $file_name = "/usr/local/lib/scrabble/twl.txt";     last SWITCH }
-	if ( /^words$/i )   { $file_name = "/usr/share/dict/words";               last SWITCH }
+	if ( /^sowpods$/i ) { $file_name = $SOWPODS_PATH; last SWITCH }
+	if ( /^collins$/i ) { $file_name = $COLLINS_PATH; last SWITCH }
+	if ( /^twl$/i )     { $file_name = $TWL_PATH;     last SWITCH }
+	if ( /^words$/i )   { $file_name = $WORDS_PATH;   last SWITCH }
 	$file_name = $dictionary;
 }
 
@@ -168,12 +192,14 @@ say "Starting letter shuffle..." if $debug;
 my @found = ();
 my %seen = ();
 
+# Are there wildcards?
 if ( $letters =~ /\./ ) {
 	$letters =~ s/\.//;
 
 	foreach my $wildcard ( 'A' .. 'Z' ) {
 		$wildcard = lc $wildcard if $dictionary =~ /^words$/i;
-		say "Blank tile is a '$wildcard'" if $debug;
+		say "***Blank tile is a '$wildcard'" if $debug;
+		print "\n*****\n* $wildcard *\n*****\n" unless $quiet;
 		Subset->run(
 			string  => $letters . $wildcard,
 			routine => \&find_words
@@ -188,7 +214,7 @@ if ( $letters =~ /\./ ) {
 
 # List found words, sorting by descending total tile value
 if ( $output =~ /^compact$/i ) {
-	say join ', ', sort { value_of($b) <=> value_of($a) } @found;
+	say "\n", join ', ', sort { value_of($b) <=> value_of($a) } @found;
 } elsif ( $output =~ /^list$/i ) {
 	say join "\n", sort { value_of($b) <=> value_of($a) } @found;
 } else {
@@ -215,6 +241,7 @@ sub find_words {
 
 	# Look at each permutation
 	foreach my $word ( @{ $a->{permutations} } ) {
+		print "." unless $quiet;
 
 		# Does this permutation contain all the letters it needs to?
 		foreach my $find ( split //, $contains ) {
@@ -231,13 +258,13 @@ sub find_words {
 		$seen{$word} = '';
 
 		# Is the permutation in the word list? (hash, actually)
-		print "is '$word' a word? " if $debug;
+		print "is '$word' a word? " if $debug > 1;
 
 		if ( exists $words{$word} ) {
-			say 'yes' if $debug;
+			say 'yes' if $debug > 1;
 			push @found, $word;
 		} else {
-			say 'no' if $debug;
+			say 'no' if $debug > 1;
 		}
 	}
 }
