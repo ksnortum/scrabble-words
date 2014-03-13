@@ -98,6 +98,22 @@ B<--help>
 
 This is a switch that outputs this documentation and exits.
 
+=head1 COPYRIGHT
+
+C<scrabble.pl>, C<Subset.pm>, and C<Permutation.pm> are Copyright (C) 2014, by Knute Snortum
+
+It is free software; you can redistribute it and/or modify it under the terms of either:
+
+=over 4
+
+=item * the GNU General Public License as published by the Free
+Software Foundation; either version 1, or (at your option) any
+later version, or
+
+=item * the Artistic License version 2.0.
+
+=back
+
 =cut
 
 my $debug = 0;
