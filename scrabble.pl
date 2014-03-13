@@ -311,7 +311,9 @@ sub set_word_value {
 	# Total value and save
 	my $this_value = 0;
 	$this_value += $value{$_} foreach split //, $value_letters;
-	$this_value += 50 if length( $these_letters ) - length( $contains ) == length( $letters ) + length( $wildcard );
+	my $len_wildcard = 0;
+	$len_wildcard = length( $wildcard ) if $wildcard;
+	$this_value += 50 if length( $these_letters ) - length( $contains ) == length( $letters ) + $len_wildcard;
 	$value_of{ $these_letters } = $this_value;
 }
 
