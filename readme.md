@@ -52,9 +52,6 @@ Limitations
 * You can only use one blank tile (dot) at a time, and even one increases the process
 time greatly.
 
-* If the program uses a blank tile as, say, a "z", it counts this in the score.  All
-blank tiles should have a value of zero.
-
 * You cannot give the positions of any letters, but you can accomplish this with the 
 list output and piping to `grep`.
 
