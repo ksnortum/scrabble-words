@@ -2,9 +2,7 @@ package Subset;
 
 use strict;
 use warnings;
-use feature 'say';
-
-use Carp;
+use feature qw( say );
 
 sub run {
 	my $invocant = shift;
