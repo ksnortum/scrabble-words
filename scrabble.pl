@@ -138,7 +138,7 @@ pod2usage() if $min_length < 2 or $min_length > 15;
 $quiet = 1 unless $output =~ /^compact$/i;
 
 # Don't print what non-quiet prints if you're in debug
-$quiet = 0 if $debug;
+$quiet = 1 if $debug;
 
 # Read a dictionary of legal words.  Put all words into a hash
 # for faster lookup
@@ -152,7 +152,7 @@ unless ( $dictionary ) {
 	}
 }
 
-# Which dictionary to use?  Change these to match your system
+# Which dictionary to use? 
 my $file_name;
 SWITCH: for ($dictionary) {
 	if ( /^sowpods$/i ) { $file_name = $SOWPODS_PATH; last SWITCH }
@@ -191,35 +191,43 @@ close DATA;
 say "Starting letter shuffle..." if $debug;
 my @found = ();
 my %seen = ();
+my %value_of = ();
+my $wildcard = "";
 
 # Are there wildcards?
 if ( $letters =~ /\./ ) {
 	$letters =~ s/\.//;
 
-	foreach my $wildcard ( 'A' .. 'Z' ) {
+	foreach $wildcard ( 'A' .. 'Z' ) {
 		$wildcard = lc $wildcard if $dictionary =~ /^words$/i;
 		say "***Blank tile is a '$wildcard'" if $debug;
 		print "\n*****\n* $wildcard *\n*****\n" unless $quiet;
 		Subset->run(
-			string  => $letters . $wildcard,
-			routine => \&find_words
+			string   => $letters . $wildcard,
+			routine  => \&find_words,
+			wildcard => $wildcard,
 		);
 	}
 } else {
 	Subset->run(
 		string  => $letters,
-		routine => \&find_words
+		routine => \&find_words,
 	);
 }
 
 # List found words, sorting by descending total tile value
+if ( $debug ) {
+	print "\n";
+	print "$_($value_of{$_}), " foreach sort keys %value_of;
+}
+
 if ( $output =~ /^compact$/i ) {
-	say "\n", join ', ', sort { value_of($b) <=> value_of($a) } @found;
+	say "\n", join ', ', sort { $value_of{$b} <=> $value_of{$a} } @found;
 } elsif ( $output =~ /^list$/i ) {
-	say join "\n", sort { value_of($b) <=> value_of($a) } @found;
+	say join "\n", sort { $value_of{$b} <=> $value_of{$a} } @found;
 } else {
 	open FH, '>', $output or die "Cannot open $output for writing, $!";
-	print FH join "\n", sort { value_of($b) <=> value_of($a) } @found;
+	print FH join "\n", sort { $value_of{$b} <=> $value_of{$a} } @found;
 	close FH;
 }
 
@@ -230,14 +238,18 @@ if ( $output =~ /^compact$/i ) {
 # For each subset of letter, get all of its permutations (order)
 # and test if it is a legal word.
 sub find_words {
-	# Look for words of at least $min_length characters
-	return if scalar @_ < $min_length;
+	my $self = shift;
+	my @current_list = @{ $self->{current_list} };
+	my $wildcard = $self->{wildcard};
 
-	my $letters = join '', @_;
-	say "Starting permutations for '$letters'" if $debug;
+	# Look for words of at least $min_length characters
+	return if scalar @current_list < $min_length;
+
+	my $these_letters = join '', @current_list;
+	say "Starting permutations for '$these_letters'" if $debug;
 
 	# $a is an object (ref to hash) that will hold the permutations
-	my $a = Permutation->new( string => $letters );
+	my $a = Permutation->new( string => $these_letters );
 
 	# Look at each permutation
 	foreach my $word ( @{ $a->{permutations} } ) {
@@ -263,18 +275,28 @@ sub find_words {
 		if ( exists $words{$word} ) {
 			say 'yes' if $debug > 1;
 			push @found, $word;
+			set_word_value( $word, $wildcard );
 		} else {
 			say 'no' if $debug > 1;
 		}
 	}
 }
 
-# Returns the total tile value of the entered word
-sub value_of {
-	my @word = split //, shift;
+# Set the total tile value of the entered word
+sub set_word_value {
+	my $these_letters = shift;
+	my $wildcard = shift;
+
+	# Wildcards have zero value
+	my $value_letters = $these_letters; 
+	$value_letters =~ s/$wildcard// if $wildcard;
+	say "Word: $these_letters, without wildcard: $value_letters" if $debug;
+
+	# Total value and save
 	my $this_value = 0;
-	$this_value += $value{$_} foreach @word;
-	return $this_value;
+	$this_value += $value{$_} foreach split //, $value_letters;
+	$this_value += 50 if length( $these_letters ) - length( $contains ) == length( $letters ) + length( $wildcard );
+	$value_of{ $these_letters } = $this_value;
 }
 
 __DATA__

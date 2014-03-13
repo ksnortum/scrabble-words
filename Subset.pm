@@ -4,13 +4,15 @@ use strict;
 use warnings;
 use feature 'say';
 
-sub run($%) {
+use Carp;
+
+sub run {
 	my $invocant = shift;
 	my $class = ref($invocant) || $invocant;
 	my $self = bless {
-		routine => sub { say join ' ', @_ },
-		string  => "",
-		set     => [],
+		routine  => sub { say join ' ', @_ },
+		string   => "",
+		set      => [],
 		@_	
 	}, $class;
 
@@ -19,19 +21,19 @@ sub run($%) {
 		$self->{set} = \@list;
 	}
 
-	_subsets( $self->{routine}, $self->{set} );
+	$self->_subsets();
 
-	return $self;
+	return $self; # This value can be ignored
 }
 
-sub _subsets($$) {
-	my $routine = shift;                  # Subroutine to call to process each subset
+sub _subsets {
+	my $self = shift;
 	my $current_size = 0;                 # Current item
 	my @current_list = ();                # Current subset
-	my $this_list = shift;                # Ref of list to be subsetted
-	my $list_size = scalar(@$this_list);  # Size of list to be subsetted
-
-	my $do_subset;     # Generate each subset
+	my $this_list = $self->{set};         # Ref of list to be subsetted
+	my $list_size = scalar @$this_list;   # Size of list to be subsetted
+	my $do_subset;                        # Generate each subset
+	
 	$do_subset = sub {
 		if ($current_size < $list_size ) {
 			++$current_size;
@@ -41,11 +43,12 @@ sub _subsets($$) {
 			pop @current_list;
 			--$current_size;
 		} else {
-			&$routine(@current_list);
+			$self->{current_list} = \@current_list;
+			&{ $self->{routine} }( $self );
 		}
 	};
 
-	&$do_subset;
+	&$do_subset();
 }
 
 1;
