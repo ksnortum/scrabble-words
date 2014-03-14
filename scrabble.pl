@@ -138,6 +138,8 @@ pod2usage( "-verbose" => 2 ) if $help;
 # What's left after the options should be the letters
 my $letters = shift;
 pod2usage() unless $letters;
+pod2usage() unless $letters =~ /^[a-z.]+$/i;
+pod2usage() unless $contains eq '' or $contains =~ /^[a-z]+$/i;
 $letters .= $contains;
 
 if ( $dictionary =~ /^words$/i ) {
