@@ -7,6 +7,7 @@
 	scrabble.pl [--dictionary <dict>] 
 	            [--contains <letters>]
 	            [--min-length <2-15>]
+	            [--max-length <2-15>]
 	            [--output <type>]
 	            [--quiet]
 	            [--debug] 
@@ -74,6 +75,12 @@ B<--min-length> 2-15
 A digit, from 2 to 15, that is the minimum length of the words
 you want to see.  The default is 2.
 
+B<--max-length> 2-15
+
+A digit, from 2 to 15, that is the maximum length of the words
+you want to see.  The default is 15.  The maximum length cannot
+be less than the minimum length.
+
 B<--output> compact | list | /path/to/file
 
 How the output should be formatted.  'compact' goes to the 
@@ -120,6 +127,7 @@ my $debug = 0;
 my $dictionary = '';
 my $help = 0;
 my $min_length = 2;
+my $max_length = 15;
 my $contains = '';
 my $output = 'compact';
 my $quiet = 0;
@@ -129,6 +137,7 @@ GetOptions(
 	"debug"        => \$debug,
 	"help"         => \$help,
 	"min-length=i" => \$min_length,
+	"max-length=i" => \$max_length,
 	"contains=s"   => \$contains,
 	"output=s"     => \$output,
 	"quiet"        => \$quiet,
@@ -148,8 +157,10 @@ if ( $dictionary =~ /^words$/i ) {
 	$letters = uc $letters;
 }
 
-# Get minimum length
+# Check minimum/maximum length
 pod2usage() if $min_length < 2 or $min_length > 15;
+pod2usage() if $max_length < 2 or $max_length > 15;
+pod2usage() if $max_length < $min_length;
 
 # Quiet is on if you're using a long output (which will probably be piped) 
 # or if you are sending output to a file
@@ -260,8 +271,8 @@ sub find_words {
 	my @current_list = @{ $self->{current_list} };
 	my $wildcard = $self->{wildcard};
 
-	# Look for words of at least $min_length characters
-	return if scalar @current_list < $min_length;
+	# Look for words that are the right length
+	return if scalar @current_list < $min_length or scalar @current_list > $max_length;
 
 	my $these_letters = join '', @current_list;
 	say "Starting permutations for '$these_letters'" if $debug;
