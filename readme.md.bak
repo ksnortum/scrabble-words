@@ -23,7 +23,7 @@ Install the Custom Modules
 --------------------------
 
 The custom modules `Permutation.pm` and `Subset.pm` should be installed in a 
-system-accessible area, but you don't have to do this if you're going to run 
+system-accessable area, but you don't have to do this if you're going to run 
 everything from
 one directory.  If you type `perl -V` (that's a capital V) at the end you will see
 the contents of @INC.  This is Perl's install "path" to modules.  There is usually a
