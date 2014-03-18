@@ -4,13 +4,20 @@ use strict;
 use warnings;
 use feature qw( say );
 
+# routine(in) - The subroutine to run for each subset
+# string(in)  - The string representation of the set
+# set(in)     - The List representation of the set
+# subset      - The current subset to be used by routine
+# Either 'string' or 'set' should be entered, not both
+# Any other key can be passed into $self for use in routine
 sub run {
 	my $invocant = shift;
 	my $class = ref($invocant) || $invocant;
 	my $self = bless {
-		routine  => sub { say join ' ', @_ },
-		string   => "",
-		set      => [],
+		routine => sub { my $self = shift; say @{ $self->{subset} } },
+		string  => "",
+		set     => [],
+		subset  => [],
 		@_	
 	}, $class;
 
@@ -24,6 +31,7 @@ sub run {
 	return $self; # This value can be ignored
 }
 
+# Internal routine that splits the set into subsets and runs the entered routine
 sub _subsets {
 	my $self = shift;
 	my $current_size = 0;                 # Current item
@@ -41,8 +49,8 @@ sub _subsets {
 			pop @current_list;
 			--$current_size;
 		} else {
-			$self->{current_list} = \@current_list;
-			&{ $self->{routine} }( $self );
+			$self->{subset} = \@current_list;
+			&{ $self->{routine} }( $self );		# Run subroutine, passing in $self for arguments
 		}
 	};
 

@@ -34,6 +34,7 @@
         scrabble.pl [--dictionary &lt;dict&gt;] 
                     [--contains &lt;letters&gt;]
                     [--min-length &lt;2-15&gt;]
+                    [--max-length &lt;2-15&gt;]
                     [--output &lt;type&gt;]
                     [--quiet]
                     [--debug] 
@@ -75,6 +76,10 @@ want words that are made of the letters &quot;abc&quot; and if must contain
 <p><strong>--min-length</strong> 2-15</p>
 <p>A digit, from 2 to 15, that is the minimum length of the words
 you want to see.  The default is 2.</p>
+<p><strong>--max-length</strong> 2-15</p>
+<p>A digit, from 2 to 15, that is the maximum length of the words
+you want to see.  The default is 15.  The maximum length cannot
+be less than the minimum length.</p>
 <p><strong>--output</strong> compact | list | /path/to/file</p>
 <p>How the output should be formatted.  'compact' goes to the 
 standard out with comma-space (, ) between the words.  List
