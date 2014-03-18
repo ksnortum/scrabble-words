@@ -245,13 +245,10 @@ if ( $letters =~ /\./ ) {
 }
 
 # List found words, sorting by descending total tile value
-if ( $debug ) {
+if ( $output =~ /^compact$/i ) {
 	print "\n";
 	print "$_($value_of{$_}), " foreach sort by_value keys %value_of;
-}
-
-if ( $output =~ /^compact$/i ) {
-	say "\n", join ', ', sort by_value @found;
+	print "\n";
 } elsif ( $output =~ /^list$/i ) {
 	say join "\n", sort by_value @found;
 } else {
@@ -279,10 +276,12 @@ sub find_words {
 
 	# $a is an object (ref to hash) that will hold the permutations
 	my $a = Permutation->new( string => $these_letters );
+	my $count = 0;
 
 	# Look at each permutation
 	foreach my $word ( @{ $a->{permutations} } ) {
-		print "." unless $quiet;
+		$count++;
+		print "." if $count % 1000 == 0 and not $quiet;
 
 		# Does this permutation contain all the letters it needs to?
 		foreach my $find ( split //, $contains ) {
