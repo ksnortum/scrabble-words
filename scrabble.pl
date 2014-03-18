@@ -268,13 +268,13 @@ if ( $output =~ /^compact$/i ) {
 # and test if it is a legal word.
 sub find_words {
 	my $self = shift;
-	my @current_list = @{ $self->{current_list} };
+	my @subset = @{ $self->{subset} };
 	my $wildcard = $self->{wildcard};
 
 	# Look for words that are the right length
-	return if scalar @current_list < $min_length or scalar @current_list > $max_length;
+	return if scalar @subset < $min_length or scalar @subset > $max_length;
 
-	my $these_letters = join '', @current_list;
+	my $these_letters = join '', @subset;
 	say "Starting permutations for '$these_letters'" if $debug;
 
 	# $a is an object (ref to hash) that will hold the permutations
