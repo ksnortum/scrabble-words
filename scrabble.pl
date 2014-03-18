@@ -247,16 +247,16 @@ if ( $letters =~ /\./ ) {
 # List found words, sorting by descending total tile value
 if ( $debug ) {
 	print "\n";
-	print "$_($value_of{$_}), " foreach sort keys %value_of;
+	print "$_($value_of{$_}), " foreach sort by_value keys %value_of;
 }
 
 if ( $output =~ /^compact$/i ) {
-	say "\n", join ', ', sort { $value_of{$b} <=> $value_of{$a} } @found;
+	say "\n", join ', ', sort by_value @found;
 } elsif ( $output =~ /^list$/i ) {
-	say join "\n", sort { $value_of{$b} <=> $value_of{$a} } @found;
+	say join "\n", sort by_value @found;
 } else {
 	open FH, '>', $output or die "Cannot open $output for writing, $!";
-	print FH join "\n", sort { $value_of{$b} <=> $value_of{$a} } @found;
+	print FH join "\n", sort by_value @found;
 	close FH;
 }
 
@@ -328,6 +328,11 @@ sub set_word_value {
 	$len_wildcard = length( $wildcard ) if $wildcard;
 	$this_value += 50 if length( $these_letters ) - length( $contains ) == length( $letters ) + $len_wildcard;
 	$value_of{ $these_letters } = $this_value;
+}
+
+# Sort words by their value
+sub by_value {
+	$value_of{ $b } <=> $value_of{ $a };
 }
 
 __DATA__
