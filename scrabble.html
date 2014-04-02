@@ -33,6 +33,7 @@
 <pre>
         scrabble.pl [--dictionary &lt;dict&gt;] 
                     [--contains &lt;letters&gt;]
+                    [--contains-re &lt;regex&gt;]
                     [--min-length &lt;2-15&gt;]
                     [--max-length &lt;2-15&gt;]
                     [--output &lt;type&gt;]
@@ -73,6 +74,10 @@ want words that are made of the letters &quot;abc&quot; and if must contain
 <p>It can be made clearer by using the &quot;equals&quot; flag syntax:</p>
 <pre>
         scrabble.pl --contains=a bc</pre>
+<p><strong>--contains-re</strong> &lt;regex&gt;</p>
+<p>&lt;regex&gt; is any valid Perl regular expression, see <em>egrep(1)</em> or
+<a href="http://perldoc.perl.org/perlre.html">http://perldoc.perl.org/perlre.html</a>.  Only words matching this 
+will be displayed.</p>
 <p><strong>--min-length</strong> 2-15</p>
 <p>A digit, from 2 to 15, that is the minimum length of the words
 you want to see.  The default is 2.</p>

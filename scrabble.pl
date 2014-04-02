@@ -6,6 +6,7 @@
 
 	scrabble.pl [--dictionary <dict>] 
 	            [--contains <letters>]
+	            [--contains-re <regex>]
 	            [--min-length <2-15>]
 	            [--max-length <2-15>]
 	            [--output <type>]
@@ -70,6 +71,12 @@ It can be made clearer by using the "equals" flag syntax:
 
 	scrabble.pl --contains=a bc
 
+B<--contains-re> <regex>
+
+<regex> is any valid Perl regular expression, see L<egrep(1)> or
+L<http://perldoc.perl.org/perlre.html>.  Only words matching this 
+will be displayed.
+
 B<--min-length> 2-15
 
 A digit, from 2 to 15, that is the minimum length of the words
@@ -129,18 +136,20 @@ my $help = 0;
 my $min_length = 2;
 my $max_length = 15;
 my $contains = '';
+my $contains_re = '';
 my $output = 'compact';
 my $quiet = 0;
 
 GetOptions(
-	"dictionary=s" => \$dictionary,
-	"debug"        => \$debug,
-	"help"         => \$help,
-	"min-length=i" => \$min_length,
-	"max-length=i" => \$max_length,
-	"contains=s"   => \$contains,
-	"output=s"     => \$output,
-	"quiet"        => \$quiet,
+	"dictionary=s"  => \$dictionary,
+	"debug"         => \$debug,
+	"help"          => \$help,
+	"min-length=i"  => \$min_length,
+	"max-length=i"  => \$max_length,
+	"contains=s"    => \$contains,
+	"contains_re=s" => \$contains_re,
+	"output=s"      => \$output,
+	"quiet"         => \$quiet,
 ) or pod2usage();
 pod2usage( "-verbose" => 2 ) if $help;
 
@@ -151,6 +160,14 @@ pod2usage() unless $letters =~ /^[a-z.]+$/i;
 pod2usage() unless $contains eq '' or $contains =~ /^[a-z]+$/i;
 $letters .= $contains;
 
+# Check the regex if there is one
+print "regex is: $contains_re\n" if $debug;
+if ( $contains_re ) {
+	eval { '' =~ /$contains_re/ };
+	die "The entered regular expression is not valid: $@\n" if $@;
+}
+
+# The "words" dictionary is lower case
 if ( $dictionary =~ /^words$/i ) {
 	$letters = lc $letters;
 } else {
@@ -250,10 +267,10 @@ if ( $output =~ /^compact$/i ) {
 	print "$_($value_of{$_}), " foreach sort by_value keys %value_of;
 	print "\n";
 } elsif ( $output =~ /^list$/i ) {
-	say join "\n", sort by_value @found;
+	print "$_\t$value_of{$_}\n" foreach sort by_value keys %value_of;
 } else {
 	open FH, '>', $output or die "Cannot open $output for writing, $!";
-	print FH join "\n", sort by_value @found;
+	print FH "$_\t$value_of{$_}\n" foreach sort by_value keys %value_of;
 	close FH;
 }
 
@@ -283,10 +300,16 @@ sub find_words {
 		$count++;
 		print "." if $count % 1000 == 0 and not $quiet;
 
+		# Does this permutation match the entered regex?
+		if ( $contains_re and $word !~ /$contains_re/i ) {
+			print "'$word' does not match regex $contains_re\n" if $debug;
+			return;
+		}
+
 		# Does this permutation contain all the letters it needs to?
 		foreach my $find ( split //, $contains ) {
 			if ( $word !~ /$find/i ) {
-				say "'$word' does not contain '$find'" if $debug;
+				print "'$word' does not contain '$find'\n" if $debug;
 				return;
 			}
 		}

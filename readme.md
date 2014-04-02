@@ -97,9 +97,6 @@ Limitations
 * You can only use one blank tile (dot) at a time, and even one increases the process
 time greatly.
 
-* You cannot give the positions of any letters, but you can accomplish this with  
-`--output list` and piping to `grep`.
-
 Copyright and License
 =====================
 
