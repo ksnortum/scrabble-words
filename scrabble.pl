@@ -27,7 +27,6 @@ blank tile.
 
 use strict;
 use warnings;
-use feature qw(say);
 
 use Permutation;
 use Subset;
@@ -75,7 +74,14 @@ B<--contains-re> <regex>
 
 <regex> is any valid Perl regular expression, see L<egrep(1)> or
 L<http://perldoc.perl.org/perlre.html>.  Only words matching this 
-will be displayed.
+will be displayed.  Note: unlike B<--contains> you must add any
+extra letters that need to be concidered to <letter>.  To use the
+example from B<--contains> above:
+
+	scrabble.pl --contains-re=^a abc
+
+All regex matches are case insensitive, since it is hard to know
+is the dictionary you are using has upper or lower case letters.
 
 B<--min-length> 2-15
 
@@ -208,8 +214,8 @@ SWITCH: for ($dictionary) {
 	$file_name = $dictionary;
 }
 
-say "The file name for the dictionary is $file_name" if $debug;
-say "Slurping dictionary words..." if $debug;
+print "The file name for the dictionary is $file_name\n" if $debug;
+print "Slurping dictionary words...\n" if $debug;
 open FH, '<', $file_name or pod2usage( "-verbose" => 2 );
 chomp( my @words = <FH> );
 my %words = map { $_ => '' } @words;
@@ -217,7 +223,7 @@ close FH;
 @words = ();
 
 # Get the tile values for all letters
-say "Getting letter values..." if $debug;
+print "Getting letter values...\n" if $debug;
 my %value = ();
 while (<DATA>) {
 	chomp;
@@ -234,7 +240,7 @@ close DATA;
 # Call Subset to get all subsets of the letters (what tiles are we
 # using).  The routine  "find_words" is called for each subset sending 
 # in a list of letters.  @found is a list of all legal words found.
-say "Starting letter shuffle..." if $debug;
+print "Starting letter shuffle...\n" if $debug;
 my @found = ();
 my %seen = ();
 my %value_of = ();
@@ -246,7 +252,7 @@ if ( $letters =~ /\./ ) {
 
 	foreach $wildcard ( 'A' .. 'Z' ) {
 		$wildcard = lc $wildcard if $dictionary =~ /^words$/i;
-		say "***Blank tile is a '$wildcard'" if $debug;
+		print "***Blank tile is a '$wildcard'\n" if $debug;
 		print "\n*****\n* $wildcard *\n*****\n" unless $quiet;
 		Subset->run(
 			string   => $letters . $wildcard,
@@ -289,7 +295,7 @@ sub find_words {
 	return if scalar @subset < $min_length or scalar @subset > $max_length;
 
 	my $these_letters = join '', @subset;
-	say "Starting permutations for '$these_letters'" if $debug;
+	print "[find_words] Starting permutations for '$these_letters'\n" if $debug;
 
 	# $a is an object (ref to hash) that will hold the permutations
 	my $a = Permutation->new( string => $these_letters );
@@ -302,17 +308,22 @@ sub find_words {
 
 		# Does this permutation match the entered regex?
 		if ( $contains_re and $word !~ /$contains_re/i ) {
-			print "'$word' does not match regex $contains_re\n" if $debug;
-			return;
+			print "[find_words] '$word' does not match regex $contains_re\n" if $debug;
+			next;
 		}
 
 		# Does this permutation contain all the letters it needs to?
+		my $this_word_doesnt_match = 0;
+
 		foreach my $find ( split //, $contains ) {
 			if ( $word !~ /$find/i ) {
-				print "'$word' does not contain '$find'\n" if $debug;
-				return;
+				print "[find_words] '$word' does not contain '$find'\n" if $debug;
+				$this_word_doesnt_match = 1;
+				last;
 			}
 		}
+		
+		next if $this_word_doesnt_match;
 
 		# Since you can have more than one tile with the same letter,
 		# it is possible that we've already tested this permutation.
@@ -321,14 +332,14 @@ sub find_words {
 		$seen{$word} = '';
 
 		# Is the permutation in the word list? (hash, actually)
-		print "is '$word' a word? " if $debug > 1;
+		print "[find_words] is '$word' a word? " if $debug > 1;
 
 		if ( exists $words{$word} ) {
-			say 'yes' if $debug > 1;
+			print "yes\n" if $debug > 1;
 			push @found, $word;
 			set_word_value( $word, $wildcard );
 		} else {
-			say 'no' if $debug > 1;
+			print "no\n" if $debug > 1;
 		}
 	}
 }
@@ -341,7 +352,7 @@ sub set_word_value {
 	# Wildcards have zero value
 	my $value_letters = $these_letters; 
 	$value_letters =~ s/$wildcard// if $wildcard;
-	say "Word: $these_letters, without wildcard: $value_letters" if $debug;
+	print "[set_word_value] Word: $these_letters, without wildcard: $value_letters\n" if $debug;
 
 	# Total value and save
 	my $this_value = 0;

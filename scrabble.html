@@ -77,7 +77,13 @@ want words that are made of the letters &quot;abc&quot; and if must contain
 <p><strong>--contains-re</strong> &lt;regex&gt;</p>
 <p>&lt;regex&gt; is any valid Perl regular expression, see <em>egrep(1)</em> or
 <a href="http://perldoc.perl.org/perlre.html">http://perldoc.perl.org/perlre.html</a>.  Only words matching this 
-will be displayed.</p>
+will be displayed.  Note: unlike <strong>--contains</strong> you must add any
+extra letters that need to be concidered to &lt;letter&gt;.  To use the
+example from <strong>--contains</strong> above:</p>
+<pre>
+        scrabble.pl --contains-re=^a abc</pre>
+<p>All regex matches are case insensitive, since it is hard to know
+is the dictionary you are using has upper or lower case letters.</p>
 <p><strong>--min-length</strong> 2-15</p>
 <p>A digit, from 2 to 15, that is the minimum length of the words
 you want to see.  The default is 2.</p>
