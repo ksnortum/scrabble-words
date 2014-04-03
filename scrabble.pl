@@ -147,7 +147,7 @@ GetOptions(
 	"min-length=i"  => \$min_length,
 	"max-length=i"  => \$max_length,
 	"contains=s"    => \$contains,
-	"contains_re=s" => \$contains_re,
+	"contains-re=s" => \$contains_re,
 	"output=s"      => \$output,
 	"quiet"         => \$quiet,
 ) or pod2usage();
