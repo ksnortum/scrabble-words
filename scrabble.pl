@@ -7,8 +7,10 @@
 	scrabble.pl [--dictionary <dict>] 
 	            [--contains <letters>]
 	            [--contains-re <regex>]
-	            [--min-length <2-15>]
-	            [--max-length <2-15>]
+	            [--prefix <letters>]
+	            [--suffix <letters>]
+	            [--min-length <1-15>]
+	            [--max-length <1-15>]
 	            [--output <type>]
 	            [--quiet]
 	            [--debug] 
@@ -72,7 +74,7 @@ It can be made clearer by using the "equals" flag syntax:
 
 B<--contains-re> <regex>
 
-<regex> is any valid Perl regular expression, see L<egrep(1)> or
+<regex> is any valid Perl regular expression, see I<egrep(1)> or
 L<http://perldoc.perl.org/perlre.html>.  Only words matching this 
 will be displayed.  Note: unlike B<--contains> you must add any
 extra letters that need to be concidered to <letter>.  To use the
@@ -83,16 +85,27 @@ example from B<--contains> above:
 All regex matches are case insensitive, since it is hard to know
 is the dictionary you are using has upper or lower case letters.
 
-B<--min-length> 2-15
+B<--prefix> <letters>
+B<--suffix> <letters>
 
-A digit, from 2 to 15, that is the minimum length of the words
-you want to see.  The default is 2.
+<letters> will be added to the beginning (end) of the proposed
+word before checking the dictionary.  You do not need to add them
+to the <letters> at the end of the command.  Using B<--perfix> or
+B<--suffix> cuts down on the processing time needed.
 
-B<--max-length> 2-15
+B<--min-length> 1-15
 
-A digit, from 2 to 15, that is the maximum length of the words
+A digit, from 1 to 15, that is the minimum length of the words
+you want to see.  The default is 2 unless there is a B<--prefix>
+or B<--suffix>, then it is 1.  A B<--min-length> of 1 is only 
+valid with a non-empty B<--prefix> or B<--suffix>.
+
+B<--max-length> 1-15
+
+A digit, from 1 to 15, that is the maximum length of the words
 you want to see.  The default is 15.  The maximum length cannot
-be less than the minimum length.
+be less than the minimum length.  A B<--max-length> of 1 is only 
+valid with a non-empty B<--prefix> or B<--suffix>.
 
 B<--output> compact | list | /path/to/file
 
@@ -139,10 +152,12 @@ later version, or
 my $debug = 0;
 my $dictionary = '';
 my $help = 0;
-my $min_length = 2;
-my $max_length = 15;
+my $min_length = -1;
+my $max_length = -1;
 my $contains = '';
 my $contains_re = '';
+my $prefix = '';
+my $suffix = '';
 my $output = 'compact';
 my $quiet = 0;
 
@@ -154,6 +169,8 @@ GetOptions(
 	"max-length=i"  => \$max_length,
 	"contains=s"    => \$contains,
 	"contains-re=s" => \$contains_re,
+	"prefix=s"      => \$prefix,
+	"suffix=s"      => \$suffix,
 	"output=s"      => \$output,
 	"quiet"         => \$quiet,
 ) or pod2usage();
@@ -162,7 +179,7 @@ pod2usage( "-verbose" => 2 ) if $help;
 # What's left after the options should be the letters
 my $letters = shift;
 pod2usage() unless $letters;
-pod2usage() unless $letters =~ /^[a-z.]+$/i;
+pod2usage() unless $letters =~ /^[A-Za-z.]+$/i;
 pod2usage() unless $contains eq '' or $contains =~ /^[a-z]+$/i;
 $letters .= $contains;
 
@@ -176,14 +193,29 @@ if ( $contains_re ) {
 # The "words" dictionary is lower case
 if ( $dictionary =~ /^words$/i ) {
 	$letters = lc $letters;
+	$prefix  = lc $prefix;
+	$suffix  = lc $suffix;
 } else {
 	$letters = uc $letters;
+	$prefix  = uc $prefix;
+	$suffix  = uc $suffix;
 }
 
 # Check minimum/maximum length
-pod2usage() if $min_length < 2 or $min_length > 15;
-pod2usage() if $max_length < 2 or $max_length > 15;
+$max_length = 15 if $max_length == -1; # default
+if ( $min_length == -1 ) {
+	if ( $prefix or $suffix ) {
+		$min_length = 1;
+	} else {
+		$min_length = 2;
+	}
+}
+pod2usage() if $min_length < 1 or $min_length > 15;
+pod2usage() if $max_length < 1 or $max_length > 15;
 pod2usage() if $max_length < $min_length;
+if ( not $prefix and not $suffix and ( $min_length == 1 or $max_length == 1) ) {
+	die "Minimum or maximum length cannot be 1 unless there is a prefix or suffix\n";
+}
 
 # Quiet is on if you're using a long output (which will probably be piped) 
 # or if you are sending output to a file
@@ -258,12 +290,16 @@ if ( $letters =~ /\./ ) {
 			string   => $letters . $wildcard,
 			routine  => \&find_words,
 			wildcard => $wildcard,
+			prefix   => $prefix,
+			suffix   => $suffix,
 		);
 	}
 } else {
 	Subset->run(
 		string  => $letters,
 		routine => \&find_words,
+		prefix   => $prefix,
+		suffix   => $suffix,
 	);
 }
 
@@ -288,8 +324,10 @@ if ( $output =~ /^compact$/i ) {
 # and test if it is a legal word.
 sub find_words {
 	my $self = shift;
-	my @subset = @{ $self->{subset} };
+	my @subset   = @{ $self->{subset} };
 	my $wildcard = $self->{wildcard};
+	my $prefix   = $self->{prefix};
+	my $suffix   = $self->{suffix};
 
 	# Look for words that are the right length
 	return if scalar @subset < $min_length or scalar @subset > $max_length;
@@ -305,6 +343,14 @@ sub find_words {
 	foreach my $word ( @{ $a->{permutations} } ) {
 		$count++;
 		print "." if $count % 1000 == 0 and not $quiet;
+
+		# Add any prefix or suffix
+		my $orig_word = $word;
+		$word = $prefix . $orig_word . $suffix;
+
+		if ( $orig_word ne $word ) {
+			print "[find_words] word after prefix/suffix: '$word'\n" if $debug;
+		}
 
 		# Does this permutation match the entered regex?
 		if ( $contains_re and $word !~ /$contains_re/i ) {
@@ -324,7 +370,7 @@ sub find_words {
 		}
 		
 		next if $this_word_doesnt_match;
-
+		
 		# Since you can have more than one tile with the same letter,
 		# it is possible that we've already tested this permutation.
 		# Use a hash for faster lookup.
