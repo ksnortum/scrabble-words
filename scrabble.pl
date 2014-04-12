@@ -292,14 +292,16 @@ if ( $letters =~ /\./ ) {
 			wildcard => $wildcard,
 			prefix   => $prefix,
 			suffix   => $suffix,
+			is_dot   => 1,
 		);
 	}
 } else {
 	Subset->run(
 		string  => $letters,
 		routine => \&find_words,
-		prefix   => $prefix,
-		suffix   => $suffix,
+		prefix  => $prefix,
+		suffix  => $suffix,
+		is_dot  => 0, 
 	);
 }
 
@@ -328,6 +330,7 @@ sub find_words {
 	my $wildcard = $self->{wildcard};
 	my $prefix   = $self->{prefix};
 	my $suffix   = $self->{suffix};
+	my $is_dot   = $self->{is_dot};
 
 	# Look for words that are the right length
 	return if scalar @subset < $min_length or scalar @subset > $max_length;
@@ -383,7 +386,7 @@ sub find_words {
 		if ( exists $words{$word} ) {
 			print "yes\n" if $debug > 1;
 			push @found, $word;
-			set_word_value( $word, $wildcard );
+			set_word_value( $word, $wildcard, $is_dot );
 		} else {
 			print "no\n" if $debug > 1;
 		}
@@ -394,6 +397,7 @@ sub find_words {
 sub set_word_value {
 	my $these_letters = shift;
 	my $wildcard = shift;
+	my $is_dot = shift;
 
 	# Wildcards have zero value
 	my $value_letters = $these_letters; 
@@ -405,7 +409,8 @@ sub set_word_value {
 	$this_value += $value{$_} foreach split //, $value_letters;
 	my $len_wildcard = 0;
 	$len_wildcard = length( $wildcard ) if $wildcard;
-	$this_value += 50 if length( $these_letters ) - length( $contains ) == length( $letters ) + $len_wildcard;
+	my $total_len = length( $letters ) + $len_wildcard + ( $is_dot ? 1 : 0 );
+	$this_value += 50 if length( $these_letters ) - length( $contains ) == $total_len;
 	$value_of{ $these_letters } = $this_value;
 }
 
