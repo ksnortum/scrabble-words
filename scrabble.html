@@ -49,7 +49,7 @@
 <h1><a name="description">DESCRIPTION</a></h1>
 <p><code>scrabble.pl</code> is a script that will take the letters you enter 
 and return all the legal Scrabble words sorted by tile value.
-<strong>letters</strong> is any conbination of letters you want to check, excluding
+<strong>letters</strong> is any combination of letters you want to check, excluding
 any <strong>--contains</strong> letters.  You can use a dot (.) to signify a
 blank tile.</p>
 <p>
@@ -80,7 +80,7 @@ want words that are made of the letters &quot;abc&quot; and if must contain
 <p>&lt;regex&gt; is any valid Perl regular expression, see <em>egrep(1)</em> or
 <a href="http://perldoc.perl.org/perlre.html">http://perldoc.perl.org/perlre.html</a>.  Only words matching this 
 will be displayed.  Note: unlike <strong>--contains</strong> you must add any
-extra letters that need to be concidered to &lt;letter&gt;.  To use the
+extra letters that need to be considered to &lt;letter&gt;.  To use the
 example from <strong>--contains</strong> above:</p>
 <pre>
         scrabble.pl --contains-re=^a abc</pre>
@@ -90,7 +90,7 @@ is the dictionary you are using has upper or lower case letters.</p>
 <strong>--suffix</strong> &lt;letters&gt;</p>
 <p>&lt;letters&gt; will be added to the beginning (end) of the proposed
 word before checking the dictionary.  You do not need to add them
-to the &lt;letters&gt; at the end of the command.  Using <strong>--perfix</strong> or
+to the &lt;letters&gt; at the end of the command.  Using <strong>--prefix</strong> or
 <strong>--suffix</strong> cuts down on the processing time needed.</p>
 <p><strong>--min-length</strong> 1-15</p>
 <p>A digit, from 1 to 15, that is the minimum length of the words

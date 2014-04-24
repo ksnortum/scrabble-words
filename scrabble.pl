@@ -21,7 +21,7 @@
 
 C<scrabble.pl> is a script that will take the letters you enter 
 and return all the legal Scrabble words sorted by tile value.
-B<letters> is any conbination of letters you want to check, excluding
+B<letters> is any combination of letters you want to check, excluding
 any B<--contains> letters.  You can use a dot (.) to signify a
 blank tile.
 
@@ -77,7 +77,7 @@ B<--contains-re> <regex>
 <regex> is any valid Perl regular expression, see I<egrep(1)> or
 L<http://perldoc.perl.org/perlre.html>.  Only words matching this 
 will be displayed.  Note: unlike B<--contains> you must add any
-extra letters that need to be concidered to <letter>.  To use the
+extra letters that need to be considered to <letter>.  To use the
 example from B<--contains> above:
 
 	scrabble.pl --contains-re=^a abc
@@ -90,7 +90,7 @@ B<--suffix> <letters>
 
 <letters> will be added to the beginning (end) of the proposed
 word before checking the dictionary.  You do not need to add them
-to the <letters> at the end of the command.  Using B<--perfix> or
+to the <letters> at the end of the command.  Using B<--prefix> or
 B<--suffix> cuts down on the processing time needed.
 
 B<--min-length> 1-15
@@ -229,7 +229,7 @@ $quiet = 1 if $debug;
 #
 # Default dictionary is based on country 
 unless ( $dictionary ) {
-	if ( $ENV{LANG} =~ /^en_US|en_CA/ ) {
+	if ( not exists $ENV{LANG} or $ENV{LANG} =~ /^en_US|en_CA/ ) {
 		$dictionary = 'twl';
 	} else {
 		$dictionary = 'sowpods';
@@ -248,7 +248,7 @@ SWITCH: for ($dictionary) {
 
 print "The file name for the dictionary is $file_name\n" if $debug;
 print "Slurping dictionary words...\n" if $debug;
-open FH, '<', $file_name or pod2usage( "-verbose" => 2 );
+open FH, '<', $file_name or die "Could not open $file_name, $!\n";
 chomp( my @words = <FH> );
 my %words = map { $_ => '' } @words;
 close FH;
@@ -447,3 +447,4 @@ X 8
 Y 4
 Z 10
 
+__END__
