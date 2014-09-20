@@ -174,7 +174,7 @@ GetOptions(
 	"output=s"      => \$output,
 	"quiet"         => \$quiet,
 ) or pod2usage();
-pod2usage( "-verbose" => 2 ) if $help;
+pod2usage( "-verbose" => 1 ) if $help;
 
 # What's left after the options should be the letters
 my $letters = shift;
