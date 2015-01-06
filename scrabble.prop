@@ -1,0 +1,11 @@
+### Properties for scrabble.pl
+
+#SOWPODS_PATH = /usr/local/lib/scrabble/sowpods.txt
+#COLLINS_PATH = /usr/local/lib/scrabble/sowpods.txt
+#TWL_PATH     = /usr/local/lib/scrabble/twl.txt
+#WORDS_PATH   = /usr/share/dict/words
+
+SOWPODS_PATH = C:/Users/Knute/Documents/GitHub/scrabble-words/sowpods.txt
+COLLINS_PATH = C:/Users/Knute/Documents/GitHub/scrabble-words/sowpods.txt
+TWL_PATH     = C:/Users/Knute/Documents/GitHub/scrabble-words/twl.txt
+WORDS_PATH   = 

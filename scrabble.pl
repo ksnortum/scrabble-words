@@ -1,4 +1,5 @@
 #! /usr/bin/perl
+#...+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....
 
 =pod
 
@@ -35,11 +36,7 @@ use Subset;
 use Getopt::Long;
 use Pod::Usage;
 
-my $SOWPODS_PATH = "/usr/local/lib/scrabble/sowpods.txt";
-my $COLLINS_PATH = "/usr/local/lib/scrabble/sowpods.txt";
-my $TWL_PATH     = "/usr/local/lib/scrabble/twl.txt";
-my $WORDS_PATH   = "/usr/share/dict/words";
-
+my %props = get_props();
 $| = 1; # Don't buffer output
 
 =pod
@@ -133,9 +130,11 @@ This is a switch that outputs this documentation and exits.
 
 =head1 COPYRIGHT
 
-C<scrabble.pl>, C<Subset.pm>, and C<Permutation.pm> are Copyright (C) 2014, by Knute Snortum
+C<scrabble.pl>, C<Subset.pm>, and C<Permutation.pm> are Copyright (C) 2014, 
+by Knute Snortum
 
-It is free software; you can redistribute it and/or modify it under the terms of either:
+It is free software; you can redistribute it and/or modify it under the terms 
+of either:
 
 =over 4
 
@@ -239,10 +238,10 @@ unless ( $dictionary ) {
 # Which dictionary to use? 
 my $file_name;
 SWITCH: for ($dictionary) {
-	if ( /^sowpods$/i ) { $file_name = $SOWPODS_PATH; last SWITCH }
-	if ( /^collins$/i ) { $file_name = $COLLINS_PATH; last SWITCH }
-	if ( /^twl$/i )     { $file_name = $TWL_PATH;     last SWITCH }
-	if ( /^words$/i )   { $file_name = $WORDS_PATH;   last SWITCH }
+	if ( /^sowpods$/i ) { $file_name = $props{SOWPODS_PATH}; last SWITCH }
+	if ( /^collins$/i ) { $file_name = $props{COLLINS_PATH}; last SWITCH }
+	if ( /^twl$/i )     { $file_name = $props{TWL_PATH};     last SWITCH }
+	if ( /^words$/i )   { $file_name = $props{WORDS_PATH};   last SWITCH }
 	$file_name = $dictionary;
 }
 
@@ -391,6 +390,23 @@ sub find_words {
 			print "no\n" if $debug > 1;
 		}
 	}
+}
+
+# Get property values
+sub get_props {
+	open FH, "<", "scrabble.prop" or die "Could not open scrabble.pl, $!\n";
+	my %props = ();
+	
+	while (<FH>) {
+		chomp;
+		s/\s+$//;
+		next if /^$/ or /^#/;
+		/^\s*(\w+)\s*=\s*(.+)$/;
+		$props{$1} = $2 if $1;
+	}
+	
+	close FH;
+	return %props;
 }
 
 # Set the total tile value of the entered word
