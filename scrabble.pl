@@ -35,6 +35,7 @@ use Permutation;
 use Subset;
 use Getopt::Long;
 use Pod::Usage;
+use File::Basename;
 
 my %props = get_props();
 $| = 1; # Don't buffer output
@@ -393,8 +394,11 @@ sub find_words {
 }
 
 # Get property values
+# "scrabble.prop" should be in the same directory as the program file
 sub get_props {
-	open FH, "<", "scrabble.prop" or die "Could not open scrabble.pl, $!\n";
+	my $dirname = dirname(__FILE__);
+	my $filename = "$dirname/scrabble.prop";
+	open FH, "<", $filename or die "Could not open $filename, $!\n";
 	my %props = ();
 	
 	while (<FH>) {
