@@ -160,6 +160,7 @@ my $prefix = '';
 my $suffix = '';
 my $output = 'compact';
 my $quiet = 0;
+my $bingo_value = 50;
 
 GetOptions(
 	"dictionary=s"  => \$dictionary,
@@ -292,7 +293,6 @@ if ( $letters =~ /\./ ) {
 			wildcard => $wildcard,
 			prefix   => $prefix,
 			suffix   => $suffix,
-			is_dot   => 1,
 		);
 	}
 } else {
@@ -301,7 +301,6 @@ if ( $letters =~ /\./ ) {
 		routine => \&find_words,
 		prefix  => $prefix,
 		suffix  => $suffix,
-		is_dot  => 0, 
 	);
 }
 
@@ -330,7 +329,6 @@ sub find_words {
 	my $wildcard = $self->{wildcard};
 	my $prefix   = $self->{prefix};
 	my $suffix   = $self->{suffix};
-	my $is_dot   = $self->{is_dot};
 
 	# Look for words that are the right length
 	return if scalar @subset < $min_length or scalar @subset > $max_length;
@@ -386,7 +384,7 @@ sub find_words {
 		if ( exists $words{$word} ) {
 			print "yes\n" if $debug > 1;
 			push @found, $word;
-			set_word_value( $word, $wildcard, $is_dot );
+			set_word_value( $word, $wildcard, length( "${prefix}${suffix}" ) );
 		} else {
 			print "no\n" if $debug > 1;
 		}
@@ -417,7 +415,7 @@ sub get_props {
 sub set_word_value {
 	my $these_letters = shift;
 	my $wildcard = shift;
-	my $is_dot = shift;
+	my $prefix_suffix_len = shift;
 
 	# Wildcards have zero value
 	my $value_letters = $these_letters; 
@@ -429,8 +427,9 @@ sub set_word_value {
 	$this_value += $value{$_} foreach split //, $value_letters;
 	my $len_wildcard = 0;
 	$len_wildcard = length( $wildcard ) if $wildcard;
-	my $total_len = length( $letters ) + $len_wildcard + ( $is_dot ? 1 : 0 );
-	$this_value += 50 if length( $these_letters ) - length( $contains ) == $total_len;
+	#my $total_len = length( $letters ) + $len_wildcard + ( $is_dot ? 1 : 0 ) + $prefix_suffix_len;
+	my $total_len = length( $letters ) + $len_wildcard + $prefix_suffix_len;
+	$this_value += $bingo_value if length( $these_letters ) - length( $contains ) == $total_len;
 	$value_of{ $these_letters } = $this_value;
 }
 
